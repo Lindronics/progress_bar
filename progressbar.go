@@ -1,11 +1,11 @@
 // Package progressbar contains a very basic console progress bar for Go programs
-// TODO: make thread-safe
 // TODO: implement error handling
 package progressbar
 
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -20,6 +20,7 @@ type Bar struct {
 	showPercentage bool
 	showTime       bool
 	isFinished     bool
+	lock           sync.Mutex
 }
 
 // -------------------
@@ -86,7 +87,7 @@ func New(maxVal int, kwargs ...func(*Bar) error) *Bar {
 	return bar
 }
 
-// update sets the state of the Bar to a new value
+// update sets the state of the Bar to a new value.
 func (b *Bar) update(i int) {
 
 	if b.isFinished {
@@ -113,47 +114,62 @@ func (b *Bar) update(i int) {
 	b.val = i
 }
 
-// Increment adds 1 to the value of the Bar
-func (b *Bar) Increment() {
-	b.Add(1)
+// end terminates the progress bar and prints elapsed time.
+func (b *Bar) end() {
+
+	if b.isFinished {
+		return
+	}
+
+	b.isFinished = true
+	b.update(b.maxVal)
+	elapsed := time.Since(b.startTime)
+	fmt.Printf("\nWall time: %f\n", elapsed.Seconds())
 }
 
-// Add adds i to the value of the Bar
+// Set sets a new value of the Bar
+func (b *Bar) Set(i int) {
+	b.lock.Lock()
+	defer b.lock.Unlock()
+
+	if b.startTime.IsZero() {
+		b.Start()
+	}
+
+	if i >= b.maxVal {
+		b.end()
+	} else {
+		b.update(i)
+	}
+}
+
+// Add adds i to the value of the Bar.
 func (b *Bar) Add(i int) {
 	b.Set(b.val + i)
 }
 
-// Start sets up a Bar
+// Increment adds 1 to the value of the Bar.
+func (b *Bar) Increment() {
+	b.Add(1)
+}
+
+// Start starts the timer on a bar.
+// It is implicitly called at the first execution of Set,
+// but can be explicitly used earlier if desired.
 func (b *Bar) Start() {
 	b.startTime = time.Now()
 	fmt.Printf("\n")
-	b.update(0)
+	b.Set(0)
 }
 
 // StartNew creates and starts a new Bar.
-// This is a convenience function combining New and Start
 func (b *Bar) StartNew(maxVal int, kwargs ...func(*Bar) error) *Bar {
 	bar := New(maxVal, kwargs...)
 	bar.Start()
 	return bar
 }
 
-// Set sets a new value of the Bar
-func (b *Bar) Set(i int) {
-	if i >= b.maxVal {
-		b.Finish()
-	} else {
-		b.update(i)
-	}
-}
-
-// Finish finishes a Bar
+// Finish finishes a bar by setting it to max value and terminating it.
 func (b *Bar) Finish() {
-	
-	if !b.isFinished {
-		b.isFinished = true
-		b.update(b.maxVal)
-		elapsed := time.Since(b.startTime)
-		fmt.Printf("\nWall time: %f\n", elapsed.Seconds())
-	}
+	b.Set(b.maxVal)
 }
