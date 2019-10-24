@@ -19,6 +19,7 @@ type Bar struct {
 	progressChar   rune
 	showPercentage bool
 	showTime       bool
+	isFinished     bool
 }
 
 // -------------------
@@ -74,7 +75,8 @@ func New(maxVal int, kwargs ...func(*Bar) error) *Bar {
 		boundaryChar:   '|',
 		progressChar:   '▓',
 		showPercentage: true,
-		showTime:       true}
+		showTime:       true,
+		isFinished:     false}
 
 	// Apply optional arguments
 	for _, arg := range kwargs {
@@ -86,6 +88,10 @@ func New(maxVal int, kwargs ...func(*Bar) error) *Bar {
 
 // update sets the state of the Bar to a new value
 func (b *Bar) update(i int) {
+
+	if b.isFinished {
+		return
+	}
 
 	// Generate characters to indicate progress
 	level := b.width * i / b.maxVal
@@ -109,7 +115,12 @@ func (b *Bar) update(i int) {
 
 // Increment adds 1 to the value of the Bar
 func (b *Bar) Increment() {
-	b.Set(b.val + 1)
+	b.Add(1)
+}
+
+// Add adds i to the value of the Bar
+func (b *Bar) Add(i int) {
+	b.Set(b.val + i)
 }
 
 // Start sets up a Bar
@@ -138,7 +149,11 @@ func (b *Bar) Set(i int) {
 
 // Finish finishes a Bar
 func (b *Bar) Finish() {
-	b.update(b.maxVal)
-	elapsed := time.Since(b.startTime)
-	fmt.Printf("\nWall time: %f\n", elapsed.Seconds())
+	
+	if !b.isFinished {
+		b.isFinished = true
+		b.update(b.maxVal)
+		elapsed := time.Since(b.startTime)
+		fmt.Printf("\nWall time: %f\n", elapsed.Seconds())
+	}
 }
