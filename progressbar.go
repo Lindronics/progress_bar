@@ -121,8 +121,9 @@ func (b *Bar) end() {
 		return
 	}
 
-	b.isFinished = true
 	b.update(b.maxVal)
+	b.isFinished = true
+
 	elapsed := time.Since(b.startTime)
 	fmt.Printf("\nWall time: %f\n", elapsed.Seconds())
 }
@@ -163,7 +164,7 @@ func (b *Bar) Start() {
 }
 
 // StartNew creates and starts a new Bar.
-func (b *Bar) StartNew(maxVal int, kwargs ...func(*Bar) error) *Bar {
+func StartNew(maxVal int, kwargs ...func(*Bar) error) *Bar {
 	bar := New(maxVal, kwargs...)
 	bar.Start()
 	return bar
