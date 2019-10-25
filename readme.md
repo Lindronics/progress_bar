@@ -42,5 +42,5 @@ b := progressbar.StartNew(100, progressbar.BarShowTime(false))
 
 * [ ] Review thread safety
 * [ ] Error handling
-* [ ] More extensive theming
+* [x] More extensive theming
 * [ ] Testing (maybe CD?)

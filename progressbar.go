@@ -9,25 +9,31 @@ import (
 	"time"
 )
 
-// Bar is a simple console progress bar
+// Bar is a simple console progress bar.
 type Bar struct {
 	width          int
 	val            int
 	maxVal         int
 	startTime      time.Time
-	boundaryChar   rune
-	progressChar   rune
+	theme          Theme
 	showPercentage bool
 	showTime       bool
 	isFinished     bool
 	lock           sync.Mutex
 }
 
+// Theme determines the look of a Bar.
+type Theme struct {
+	StartChar    rune
+	EndChar      rune
+	ProgressChar rune
+}
+
 // -------------------
 // Optional parameters
 // -------------------
 
-// BarWidth returns a function for setting the width of a Bar
+// BarWidth returns a function for setting the width of a Bar.
 func BarWidth(width int) func(*Bar) error {
 	return func(b *Bar) error {
 		b.width = width
@@ -35,16 +41,15 @@ func BarWidth(width int) func(*Bar) error {
 	}
 }
 
-// BarChars returns a function for setting the boundary and progress characters of a Bar
-func BarChars(boundaryChar, progressChar rune) func(*Bar) error {
+// BarTheme returns a function for setting the visual theme of a Bar.
+func BarTheme(theme Theme) func(*Bar) error {
 	return func(b *Bar) error {
-		b.boundaryChar = boundaryChar
-		b.progressChar = progressChar
+		b.theme = theme
 		return nil
 	}
 }
 
-// BarShowPercent returns a function for setting whether the Bar displays a percentage
+// BarShowPercent returns a function for setting whether the Bar displays a percentage.
 func BarShowPercent(showPercentage bool) func(*Bar) error {
 	return func(b *Bar) error {
 		b.showPercentage = showPercentage
@@ -52,7 +57,7 @@ func BarShowPercent(showPercentage bool) func(*Bar) error {
 	}
 }
 
-// BarShowTime returns a function for setting whether the Bar displays elapsed time
+// BarShowTime returns a function for setting whether the Bar displays elapsed time.
 func BarShowTime(showTime bool) func(*Bar) error {
 	return func(b *Bar) error {
 		b.showTime = showTime
@@ -69,12 +74,16 @@ func BarShowTime(showTime bool) func(*Bar) error {
 // Returns a new Bar object.
 func New(maxVal int, kwargs ...func(*Bar) error) *Bar {
 
+	theme := Theme{
+		StartChar:    '|',
+		EndChar:      '|',
+		ProgressChar: '▓'}
+
 	bar := &Bar{
 		width:          50,
 		val:            0,
 		maxVal:         maxVal,
-		boundaryChar:   '|',
-		progressChar:   '▓',
+		theme:          theme,
 		showPercentage: true,
 		showTime:       true,
 		isFinished:     false}
@@ -96,10 +105,10 @@ func (b *Bar) update(i int) {
 
 	// Generate characters to indicate progress
 	level := b.width * i / b.maxVal
-	progress := strings.Repeat(string(b.progressChar), level)
+	progress := strings.Repeat(string(b.theme.ProgressChar), level)
 	blanks := strings.Repeat(" ", b.width-level)
 
-	fmt.Printf("\rProgress: %s%s%s%s", string(b.boundaryChar), progress, blanks, string(b.boundaryChar))
+	fmt.Printf("\rProgress: %s%s%s%s", string(b.theme.StartChar), progress, blanks, string(b.theme.EndChar))
 
 	if b.showPercentage {
 		percentage := 100 * float32(i) / float32(b.maxVal)
