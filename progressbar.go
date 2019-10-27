@@ -77,7 +77,8 @@ func New(maxVal int, kwargs ...func(*Bar) error) *Bar {
 	theme := Theme{
 		StartChar:    '|',
 		EndChar:      '|',
-		ProgressChar: '▓'}
+		ProgressChar: '▓',
+	}
 
 	bar := &Bar{
 		width:          50,
@@ -86,7 +87,8 @@ func New(maxVal int, kwargs ...func(*Bar) error) *Bar {
 		theme:          theme,
 		showPercentage: true,
 		showTime:       true,
-		isFinished:     false}
+		isFinished:     false,
+	}
 
 	// Apply optional arguments
 	for _, arg := range kwargs {
