@@ -3,6 +3,7 @@
 package progressbar
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -36,6 +37,9 @@ type Theme struct {
 // BarWidth returns a function for setting the width of a Bar.
 func BarWidth(width int) func(*Bar) error {
 	return func(b *Bar) error {
+		if width <= 0 {
+			return errors.New("width must be positive")
+		}
 		b.width = width
 		return nil
 	}
@@ -44,6 +48,9 @@ func BarWidth(width int) func(*Bar) error {
 // BarTheme returns a function for setting the visual theme of a Bar.
 func BarTheme(theme Theme) func(*Bar) error {
 	return func(b *Bar) error {
+		if theme.StartChar == 0 || theme.EndChar == 0 || theme.ProgressChar == 0 {
+			return errors.New("invalid theme characters")
+		}
 		b.theme = theme
 		return nil
 	}
@@ -72,7 +79,11 @@ func BarShowTime(showTime bool) func(*Bar) error {
 // New creates a Bar tracking progress from 0 to maxVal.
 // Takes optional arguments as varidadic functions.
 // Returns a new Bar object.
-func New(maxVal int, kwargs ...func(*Bar) error) *Bar {
+func New(maxVal int, kwargs ...func(*Bar) error) (*Bar, error) {
+
+	if maxVal <= 0 {
+		return nil, errors.New("invalid maxVal")
+	}
 
 	theme := Theme{
 		StartChar:    '|',
@@ -92,10 +103,13 @@ func New(maxVal int, kwargs ...func(*Bar) error) *Bar {
 
 	// Apply optional arguments
 	for _, arg := range kwargs {
-		arg(bar)
+		err := arg(bar)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return bar
+	return bar, nil
 }
 
 // update sets the state of the Bar to a new value.
@@ -150,6 +164,8 @@ func (b *Bar) Set(i int) {
 
 	if i >= b.maxVal {
 		b.end()
+	} else if i < 0 {
+		b.update(0)
 	} else {
 		b.update(i)
 	}
@@ -175,10 +191,13 @@ func (b *Bar) Start() {
 }
 
 // StartNew creates and starts a new Bar.
-func StartNew(maxVal int, kwargs ...func(*Bar) error) *Bar {
-	bar := New(maxVal, kwargs...)
+func StartNew(maxVal int, kwargs ...func(*Bar) error) (*Bar, error) {
+	bar, err := New(maxVal, kwargs...)
+	if err != nil {
+		return nil, err
+	}
 	bar.Start()
-	return bar
+	return bar, nil
 }
 
 // Finish finishes a bar by setting it to max value and terminating it.

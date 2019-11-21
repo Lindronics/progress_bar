@@ -24,12 +24,14 @@ func main() {
 ```
 
 ### Example output
-```
-Progress: |▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓| 100.00% - 0.63s 
+
+```stdout
+Progress: |▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓| 100.00% - 0.63s
 Wall time: 0.634013
 ```
 
 ### Optional parameters
+
 ```Go
 // Set display width of the progress bar
 b := progressbar.StartNew(100, progressbar.BarWidth(100))
@@ -42,6 +44,7 @@ b := progressbar.StartNew(100, progressbar.BarShowTime(false))
 ```
 
 ### Theming
+
 ```Go
 theme := Theme{
     StartChar:    '[',
@@ -50,12 +53,11 @@ theme := Theme{
 }
 
 b := progressbar.StartNew(100, progressbar.BarTheme(theme)
-
 ```
 
 ## Todo
 
 * [ ] Review thread safety
-* [ ] Error handling
+* [x] Error handling
 * [x] More extensive theming
-* [ ] Testing (maybe CD?)
+* [x] Testing
